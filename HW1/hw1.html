@@ -53,7 +53,7 @@ class Ball {
 	constructor (r,x,z,cl) {
 
       this.vel = new THREE.Vector3(1,1,1);
-      var geometry = new THREE.CylinderGeometry(r,r,5,32);
+      var geometry = new THREE.CylinderGeometry(r,r,8,32);
 	  var material = new THREE.MeshPhongMaterial({color: cl ,shininess: 100});
       var mesh = new THREE.Mesh(geometry,material);
 	  var group = new THREE.Group();
@@ -67,7 +67,7 @@ class Ball {
 
       scene.add(group);
 	  group.add(light);
-	  group.position.set(x,2.5,z);
+	  group.position.set(x,4,z);
 
 	  return group;
 	}
@@ -115,13 +115,11 @@ function init () {
 	camera.position.z = 200;
 	let controls = new THREE.OrbitControls(camera, renderer.domElement);
 	
-
-
  var ballA = new Ball(Radius,0,0,0xE60000);
- var ballB = new Ball(Radius,20,20,0x9932CC);
- var ballC = new Ball(Radius,30,30,0xFFD700);
- var ballD = new Ball(Radius,10,10,0x66FF00);
- var ballE = new Ball(Radius,40,40,0x1E90FF);
+ var ballB = new Ball(Radius,10,20,0x9932CC);
+ var ballC = new Ball(Radius,-30,30,0xFFD700);
+ var ballD = new Ball(Radius,-10,-50,0x66FF00);
+ var ballE = new Ball(Radius,40,-40,0x1E90FF);
 
    balls.push(ballA,ballB,ballC,ballD,ballE);
    balls.forEach(function (b){
@@ -153,53 +151,46 @@ scene.add (light1);
 function animate() {
 
   var dt = clock.getDelta();
-	balls.forEach(function (b){
-		b.position.add (b.vel.clone().multiplyScalar (dt));
+	balls.forEach(function (ball){
+		ball.position.add (ball.vel.clone().multiplyScalar (dt));
 
-		if(b.position.x > 70-Radius){
-			hitwall.play();
-			b.vel.x = -b.vel.x;
-			b.position.x = 70-Radius;
-		}		
-		if(b.position.x < -70+Radius){
-			hitwall.play();
-			b.vel.x = -b.vel.x;
-			b.position.x = -70+Radius;
-		}		
-		if(b.position.z > 70-Radius){
-			hitwall.play();
-			b.vel.z = -b.vel.z;
-			b.position.z = 70-Radius;
-		}
-		if(b.position.z < -70+Radius){
-			hitwall.play();
-			b.vel.z = -b.vel.z;
-			b.position.z = -70+Radius;
-		}		
-	});
-	
-	
 	for(var i = 0; i <= 4; i++){
 		for(var j = 0; j <= 4; j++){
-			var x = (balls[i].position.x - balls[j].position.x) * (balls[i].position.x - balls[j].position.x);
-			var z = (balls[i].position.z - balls[j].position.z) * (balls[i].position.z - balls[j].position.z);
 			
-			if((x + z) < 144 && i != j){
-				var temp = new THREE.Vector3();
+			if( balls[i].position.clone().distanceToSquared(balls[j].position)< 144 && i != j){
 				hitball.play();
+
+				var temp = new THREE.Vector3();
 				temp.copy(balls[i].vel);
 				balls[i].position.add(balls[i].vel.clone().normalize().negate());
 				balls[j].position.add(balls[j].vel.clone().normalize().negate());
-				
 				balls[i].vel.copy(balls[j].vel);								   
 				balls[j].vel.copy(temp);
-
-				balls[i].position.add(balls[i].vel.clone().multiplyScalar (dt));
-				balls[j].position.add(balls[j].vel.clone().multiplyScalar (dt));
-
 			}
 		}
-	}
+	}  //球碰球
+	
+	if(ball.position.x > 70-Radius){
+			hitwall.play();
+			ball.vel.x = -ball.vel.x;
+			ball.position.x = 70-Radius;
+		}		
+		if(ball.position.x < -70+Radius){
+			hitwall.play();
+			ball.vel.x = -ball.vel.x;
+			ball.position.x = -70+Radius;
+		}		
+		if(ball.position.z > 70-Radius){
+			hitwall.play();
+			ball.vel.z = -ball.vel.z;
+			ball.position.z = 70-Radius;
+		}
+		if(ball.position.z < -70+Radius){
+			hitwall.play();
+			ball.vel.z = -ball.vel.z;
+			ball.position.z = -70+Radius;
+		}		
+	}); //球碰牆
 	requestAnimationFrame(animate);
     render();
 }
