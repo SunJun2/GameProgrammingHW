@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+#info
+{
+  position: absolute;
+  top: 10px;
+  width: 100%;
+  padding: 5px;
+  text-align: center;
+  font-size:20px;
+}
+
+body {
+  overflow: hidden;
+}
+</style>
+</head>
+
+<body>
+
+<audio id="hitball" style="display:none">
+<source src="./hitball.mp3" type='audio/wav'>
+</audio>
+
+<audio id="hitwall" style="display:none">
+<source src="./hitwall.mp3" type='audio/wav'>
+</audio>
+
+
+<div id="info">HW1 圓盤碰撞<br>
+</div>
+<script src="https://threejs.org/build/three.min.js"></script>
+<script src="https://threejs.org/examples/js/controls/OrbitControls.js">
+</script>
+
+
+<script>
+
+var camera,scene,renderer;
+var hitBall,hitWall;
+var pos, vel, force;
+var clock;
+var balls = [];
+
+const Radius=6;
+
+class Ball {
+   vel;
+	force;
+	constructor (r,x,z,cl) {
+      this.vel = new THREE.Vector3(10,10,10);
+	  this.force = new THREE.Vector3(0,0,0);
+      var geometry = new THREE.CylinderGeometry(r,r,5,32);
+	  var material = new THREE.MeshPhongMaterial({color: cl ,shininess: 300});
+      var mesh = new THREE.Mesh(geometry,material);
+	  var group = new THREE.Group();
+	  group.add(mesh);
+	  
+	  var light = new THREE.PointLight( cl, 1,100);
+	  light.position.copy (mesh.position);
+	  light.position.y=25;
+	  light.power=10;
+	  
+      light.color.copy (mesh.material.color);
+	  group.add(light);
+	  scene.add(group);
+	  group.position.set(x,2.5,z);
+	  return group;
+	}
+}
+
+class Wall{
+
+	constructor(i){
+  var geometry = new THREE.BoxGeometry(180,40,20); 
+  var material = new THREE.MeshPhongMaterial({color:0x888888,shininess: 200,transparent: true, opacity:0.5});
+  var mesh = new THREE.Mesh(geometry,material);
+	
+	if(i==1){
+		mesh.position.set  (0,20,80);
+	}
+	else if(i==2){
+        mesh.position.set  (0,20,-80);
+	}
+	else if(i==3){
+		mesh.rotation.y = Math.PI / 2;
+        mesh.position.set  (80,20,0);
+	}
+	else if(i==4){
+		mesh.rotation.y = Math.PI / 2;
+        mesh.position.set  (-80,20,0);
+	}
+	return mesh;
+  }
+}
+
+init();
+animate();
+
+function init () {
+	
+	renderer = new THREE.WebGLRenderer({
+    antialias: true
+  });
+	renderer.setSize (window.innerWidth, window.innerHeight);
+	renderer.setClearColor (0x888888);
+	document.body.appendChild (renderer.domElement);
+
+	scene = new THREE.Scene();
+	camera = new THREE.PerspectiveCamera (50, window.innerWidth/window.innerHeight, 1, 1000);
+	camera.position.z = 200;
+	let controls = new THREE.OrbitControls(camera, renderer.domElement);
+	
+
+
+ var ballA = new Ball(Radius,0,0,0xE60000);
+ var ballB = new Ball(Radius,20,20,0x9932CC);
+ var ballC = new Ball(Radius,30,30,0xFFD700);
+ var ballD = new Ball(Radius,10,10,0x66FF00);
+ var ballE = new Ball(Radius,40,40,0x1E90FF);
+
+   balls.push(ballA,ballB,ballC,ballD,ballE);
+   balls.forEach(function (b){
+		b.vel = new THREE.Vector3(Math.clamp(Math.random()*100,1,100),0,Math.clamp(Math.random()*100,1,100));
+	});
+
+  var floor = new THREE.Mesh(new THREE.PlaneGeometry(150,150),new THREE.MeshPhongMaterial({color: 0x888888,shininess: 200,side:THREE.DoubleSide,}))
+	floor.rotation.x = -Math.PI/2;
+	scene.add(floor);
+
+  var wallA = new Wall(1);
+  scene.add(wallA);
+  var wallB = new Wall(2);
+  scene.add(wallB);
+  var wallC = new Wall(3);
+  scene.add(wallC);
+  var wallD = new Wall(4);
+  scene.add(wallD);
+
+	var pointLight = new THREE.PointLight ();
+  pointLight.position.set (0,0,0);
+light1 = new THREE.PointLight (0xff0000);
+scene.add (light1);	
+	window.addEventListener('resize', onWindowResize, false);
+	
+}
+
+
+function animate() {
+  var dt = clock.getDelta();
+	balls.forEach(function (b){
+		b.position.add (b.vel.clone().multiplyScalar (dt));
+		if(b.position.x > 90-Radius){
+			hitwall.play();
+			b.vel.x = -b.vel.x;
+			b.position.x = 90-Radius;
+		}		
+		if(b.position.x < -90+Radius){
+			hitwall.play();
+			b.vel.x = -b.vel.x;
+			b.position.x = -90+Radius;
+		}		
+		if(b.position.z > 90-Radius){
+			hitwall.play();
+			b.vel.z = -b.vel.z;
+			b.position.z = 90-Radius;
+		}
+		if(b.position.z < -90+Radius){
+			hitwall.play();
+			b.vel.z = -b.vel.z;
+			b.position.z = -90+Radius;
+		}		
+	});
+	
+	
+	for(var i = 0; i <= 7; i++){
+		for(var j = 0; j <= 7; j++){
+			var x = (balls[i].position.x - balls[j].position.x) * (balls[i].position.x - balls[j].position.x);
+			var z = (balls[i].position.z - balls[j].position.z) * (balls[i].position.z - balls[j].position.z);
+			
+			if((x + z) < 400 && i != j){
+				var temp = new THREE.Vector3();
+				hitball.play();
+				temp.copy(balls[i].vel);
+				balls[i].position.add(balls[i].vel.clone().normalize().negate());
+				balls[j].position.add(balls[j].vel.clone().normalize().negate());
+				
+				balls[i].vel.copy(balls[j].vel);								   
+				balls[j].vel.copy(temp);											   
+				balls[i].position.add(balls[i].vel.clone().multiplyScalar (dt));
+				balls[j].position.add(balls[j].vel.clone().multiplyScalar (dt));
+
+			}
+		}
+	}
+
+function onWindowResize() {
+  
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+	
+}
+
+function render() {
+	renderer.render(scene, camera);
+}
+
+</script>
+</body>
+
+</html>
