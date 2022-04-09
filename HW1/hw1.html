@@ -166,11 +166,13 @@ function animate() {
 				balls[j].position.add(balls[j].vel.clone().normalize().negate());
 				balls[i].vel.copy(balls[j].vel);								   
 				balls[j].vel.copy(temp);
+				balls[i].position.add(balls[i].vel.clone().multiplyScalar (dt));
+				balls[j].position.add(balls[j].vel.clone().multiplyScalar (dt));
 			}
 		}
 	}  //球碰球
 	
-	if(ball.position.x > 70-Radius){
+	    if(ball.position.x > 70-Radius){
 			hitwall.play();
 			ball.vel.x = -ball.vel.x;
 			ball.position.x = 70-Radius;
