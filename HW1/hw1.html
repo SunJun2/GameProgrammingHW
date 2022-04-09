@@ -38,6 +38,7 @@ body {
 
 <script>
 
+(function(){Math.clamp=function(a,b,c){return Math.max(b,Math.min(c,a));}})();
 var camera,scene,renderer;
 var hitBall,hitWall;
 var pos, vel, force;
@@ -47,26 +48,27 @@ var balls = [];
 const Radius=6;
 
 class Ball {
-   vel;
-	force;
+    vel;
+	
 	constructor (r,x,z,cl) {
-      this.vel = new THREE.Vector3(10,10,10);
-	  this.force = new THREE.Vector3(0,0,0);
+
+      this.vel = new THREE.Vector3(1,1,1);
       var geometry = new THREE.CylinderGeometry(r,r,5,32);
-	  var material = new THREE.MeshPhongMaterial({color: cl ,shininess: 300});
+	  var material = new THREE.MeshPhongMaterial({color: cl ,shininess: 100});
       var mesh = new THREE.Mesh(geometry,material);
 	  var group = new THREE.Group();
 	  group.add(mesh);
 	  
 	  var light = new THREE.PointLight( cl, 1,100);
 	  light.position.copy (mesh.position);
-	  light.position.y=25;
-	  light.power=10;
-	  
+	  light.position.y=10;
+	  light.power=20;
       light.color.copy (mesh.material.color);
+
+      scene.add(group);
 	  group.add(light);
-	  scene.add(group);
 	  group.position.set(x,2.5,z);
+
 	  return group;
 	}
 }
@@ -100,7 +102,7 @@ init();
 animate();
 
 function init () {
-	
+	clock = new THREE.Clock();
 	renderer = new THREE.WebGLRenderer({
     antialias: true
   });
@@ -149,38 +151,40 @@ scene.add (light1);
 
 
 function animate() {
+
   var dt = clock.getDelta();
 	balls.forEach(function (b){
 		b.position.add (b.vel.clone().multiplyScalar (dt));
-		if(b.position.x > 90-Radius){
+
+		if(b.position.x > 70-Radius){
 			hitwall.play();
 			b.vel.x = -b.vel.x;
-			b.position.x = 90-Radius;
+			b.position.x = 70-Radius;
 		}		
-		if(b.position.x < -90+Radius){
+		if(b.position.x < -70+Radius){
 			hitwall.play();
 			b.vel.x = -b.vel.x;
-			b.position.x = -90+Radius;
+			b.position.x = -70+Radius;
 		}		
-		if(b.position.z > 90-Radius){
+		if(b.position.z > 70-Radius){
 			hitwall.play();
 			b.vel.z = -b.vel.z;
-			b.position.z = 90-Radius;
+			b.position.z = 70-Radius;
 		}
-		if(b.position.z < -90+Radius){
+		if(b.position.z < -70+Radius){
 			hitwall.play();
 			b.vel.z = -b.vel.z;
-			b.position.z = -90+Radius;
+			b.position.z = -70+Radius;
 		}		
 	});
 	
 	
-	for(var i = 0; i <= 7; i++){
-		for(var j = 0; j <= 7; j++){
+	for(var i = 0; i <= 4; i++){
+		for(var j = 0; j <= 4; j++){
 			var x = (balls[i].position.x - balls[j].position.x) * (balls[i].position.x - balls[j].position.x);
 			var z = (balls[i].position.z - balls[j].position.z) * (balls[i].position.z - balls[j].position.z);
 			
-			if((x + z) < 400 && i != j){
+			if((x + z) < 144 && i != j){
 				var temp = new THREE.Vector3();
 				hitball.play();
 				temp.copy(balls[i].vel);
@@ -188,13 +192,17 @@ function animate() {
 				balls[j].position.add(balls[j].vel.clone().normalize().negate());
 				
 				balls[i].vel.copy(balls[j].vel);								   
-				balls[j].vel.copy(temp);											   
+				balls[j].vel.copy(temp);
+
 				balls[i].position.add(balls[i].vel.clone().multiplyScalar (dt));
 				balls[j].position.add(balls[j].vel.clone().multiplyScalar (dt));
 
 			}
 		}
 	}
+	requestAnimationFrame(animate);
+    render();
+}
 
 function onWindowResize() {
   
