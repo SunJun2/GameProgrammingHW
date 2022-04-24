@@ -212,15 +212,6 @@ function animate() {
 		torso.rotation.y = -(Math.PI + theta);
 	}
 	
-	/*
-	if(angle >= Math.PI / 4 || angle <= -Math.PI/6)
-		sign *= -1;
-	Lleg.rotation.x = -angle;
-	Rleg.rotation.x = angle;
-	Rhand.rotation.x = -angle;
-	Lhand.rotation.x = angle;
-	*/
-
   let intKey = keyframe(clock.getElapsedTime());
 
   lLeg.rotation.x = intKey[0];
